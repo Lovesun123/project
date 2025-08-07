@@ -30,16 +30,16 @@ export default function SignUpBusiness() {
         <div className="space-y-8">
           <div className="space-y-4">
             <h2 
-              className="text-4xl lg:text-5xl font-normal leading-tight"
+              className="text-4xl lg:text-5xl font-normal leading-tight text-center"
               style={{ color: '#7b3b3b' }}
             >
               Welcome to<br />
-              <span className="font-medium border-b-2" style={{ borderColor: '#7b3b3b' }}>
+              <span className="font-medium border-b-2 text-center" style={{ borderColor: '#7b3b3b' }}>
                 MicroMatch!
               </span>
             </h2>
             <p 
-              className="text-lg"
+              className="text-lg text-center"
               style={{ color: '#7b3b3b' }}
             >
               Sign up as a small cosmetic business or<br />
@@ -170,9 +170,9 @@ export default function SignUpBusiness() {
         <div className="flex items-center justify-center">
           <div className="relative">
             <img
-              src="/cosmetic-arrangement.png"
+              src="/Sb.png"
               alt="Cosmetic products and makeup items arranged on a pink surface"
-              className="rounded-lg shadow-lg max-w-full h-auto"
+              className=" shadow-lg w-600 h-127"
             />
           </div>
         </div>
