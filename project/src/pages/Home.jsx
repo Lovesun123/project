@@ -2,20 +2,23 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
 import { Clock, BarChart3, MessageCircle, Star } from 'lucide-react';
+import Footer from '../components/Footer'; // Import the new Footer component
 
 export default function Home() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
-      <div className="flex min-h-screen">
+      <div 
+        className="flex flex-1" // Use flex-1 to make it take available space
+        style={{ backgroundColor: '#b9d7d9' }} 
+      >
         {/* Left Side - Hero Content */}
         <div 
-          className="w-1/2 flex items-center justify-center px-12 py-16"
-          style={{ backgroundColor: '#b9d7d9' }}
+          className="w-full flex items-center justify-center px-12 py-16" // Make it full width as there's no right side
         >
-          <div className="space-y-8 max-w-lg">
+          <div className="space-y-8 max-w-lg text-center"> {/* Center content */}
             <div className="space-y-6">
               <h1 
                 className="text-5xl lg:text-6xl font-bold leading-tight"
@@ -44,74 +47,6 @@ export default function Home() {
             >
               SIGN UP
             </Button>
-          </div>
-        </div>
-
-        {/* Right Side - Feature Images */}
-        <div 
-          className="w-1/2 p-8 flex flex-col gap-4"
-          style={{ backgroundColor: '#e1f3f4' }}
-        >
-          <div className="flex gap-4 h-1/3">
-            <div 
-              className="flex-1 rounded-lg flex items-center justify-center text-center p-4"
-              style={{ backgroundColor: '#f9f2e0' }}
-            >
-              <div>
-                <div className="w-16 h-16 mx-auto mb-2 rounded" style={{ backgroundColor: '#b9d7d9' }}></div>
-                <p className="text-sm" style={{ color: '#7b3b3b' }}>
-                  image aspect of feature on website
-                </p>
-              </div>
-            </div>
-            <div 
-              className="flex-1 rounded-lg flex items-center justify-center text-center p-4"
-              style={{ backgroundColor: '#f9f2e0' }}
-            >
-              <div>
-                <div className="w-20 h-12 mx-auto mb-2 rounded" style={{ backgroundColor: '#b9d7d9' }}></div>
-                <p className="text-sm" style={{ color: '#7b3b3b' }}>
-                  image of aspect of website (specifically the search engine results when implemented)
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex gap-4 h-1/3">
-            <div 
-              className="flex-1 rounded-lg flex items-center justify-center text-center p-4"
-              style={{ backgroundColor: '#f9f2e0' }}
-            >
-              <div>
-                <div className="w-16 h-16 mx-auto mb-2 rounded" style={{ backgroundColor: '#b9d7d9' }}></div>
-                <p className="text-sm" style={{ color: '#7b3b3b' }}>
-                  image aspect of feature on website
-                </p>
-              </div>
-            </div>
-            <div 
-              className="flex-1 rounded-lg flex items-center justify-center text-center p-4"
-              style={{ backgroundColor: '#f9f2e0' }}
-            >
-              <div>
-                <div className="w-16 h-16 mx-auto mb-2 rounded" style={{ backgroundColor: '#b9d7d9' }}></div>
-                <p className="text-sm" style={{ color: '#7b3b3b' }}>
-                  image aspect of feature on website
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div 
-            className="h-1/3 rounded-lg flex items-center justify-center text-center p-4"
-            style={{ backgroundColor: '#f9f2e0' }}
-          >
-            <div>
-              <div className="w-24 h-16 mx-auto mb-2 rounded" style={{ backgroundColor: '#b9d7d9' }}></div>
-              <p className="text-sm" style={{ color: '#7b3b3b' }}>
-                image aspect of feature on website
-              </p>
-            </div>
           </div>
         </div>
       </div>
@@ -453,6 +388,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+      <Footer /> {/* Add the Footer component here */}
     </div>
   );
 }

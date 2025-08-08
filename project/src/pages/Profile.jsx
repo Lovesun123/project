@@ -3,6 +3,9 @@ import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import Label from '../components/Label';
+import ImageUpload from '../components/ImageUpload';
+import BioEditor from '../components/BioEditor';
+import { Star } from 'lucide-react'; // Import Star icon
 
 export default function Profile() {
   const { user, updateProfile } = useAuth();
@@ -21,6 +24,28 @@ export default function Profile() {
     });
   };
 
+  const handleImageChange = async (imageData) => {
+    const updatedData = { ...formData, profilePicture: imageData };
+    setFormData(updatedData);
+    
+    // Auto-save profile picture
+    const result = await updateProfile(updatedData);
+    if (!result.success) {
+      alert('Failed to update profile picture');
+    }
+  };
+
+  const handleBioChange = async (newBio) => {
+    const updatedData = { ...formData, bio: newBio };
+    setFormData(updatedData);
+    
+    // Auto-save bio
+    const result = await updateProfile(updatedData);
+    if (!result.success) {
+      alert('Failed to update bio');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -35,6 +60,9 @@ export default function Profile() {
 
   const isInfluencer = user.userType === 'influencer';
   const isBusiness = user.userType === 'business';
+  const displayName = formData.firstName && formData.lastName 
+    ? `${formData.firstName} ${formData.lastName}`
+    : 'Update Your Name';
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#e1f3f4' }}>
@@ -52,21 +80,28 @@ export default function Profile() {
                 {isEditing ? 'Cancel' : 'Finalize Profile'}
               </Button>
               
-              <div 
-                className="w-32 h-32 mx-auto rounded-full flex items-center justify-center text-4xl font-bold"
-                style={{ backgroundColor: '#f9f2e0', color: '#7b3b3b' }}
-              >
-                Profile
-              </div>
+              {/* Profile Picture Upload */}
+              <ImageUpload
+                currentImage={formData.profilePicture}
+                onImageChange={handleImageChange}
+                className="flex justify-center"
+              />
               
               <div>
                 <h2 
                   className="text-2xl font-semibold"
                   style={{ color: '#7b3b3b' }}
                 >
-                  {isInfluencer ? 'Micro-Influencer' : 'Small Business'} Name
+                  {displayName}
                 </h2>
+                <p 
+                  className="text-lg"
+                  style={{ color: '#7b3b3b' }}
+                >
+                  {isInfluencer ? 'Micro-Influencer' : 'Small Business'}
+                </p>
                 <button 
+                  onClick={() => setIsEditing(true)}
                   className="text-sm underline"
                   style={{ color: '#7b3b3b' }}
                 >
@@ -351,37 +386,10 @@ export default function Profile() {
         <div className="w-1/2 flex flex-col items-center justify-center px-8 py-12">
           {/* Bio Section */}
           <div className="w-full max-w-lg mb-8">
-            <div className="space-y-4">
-              <h3 
-                className="text-2xl font-semibold border-b-2 pb-2"
-                style={{ 
-                  color: '#7b3b3b',
-                  borderColor: '#7b3b3b'
-                }}
-              >
-                Bio
-              </h3>
-              <div className="space-y-2">
-                <div 
-                  className="h-1 w-full"
-                  style={{ backgroundColor: '#7b3b3b' }}
-                ></div>
-                <div 
-                  className="h-1 w-full"
-                  style={{ backgroundColor: '#7b3b3b' }}
-                ></div>
-                <div 
-                  className="h-1 w-3/4"
-                  style={{ backgroundColor: '#7b3b3b' }}
-                ></div>
-              </div>
-              <button 
-                className="text-sm underline"
-                style={{ color: '#7b3b3b' }}
-              >
-                Update Bio
-              </button>
-            </div>
+            <BioEditor
+              bio={formData.bio}
+              onBioChange={handleBioChange}
+            />
           </div>
 
           {/* Partnerships Section */}
@@ -400,41 +408,62 @@ export default function Profile() {
             </h3>
             
             <div className="space-y-4">
-              {/* Sample partnerships */}
-              {[1, 2, 3, 4].map((item, index) => (
-                <div key={item} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="w-12 h-12 rounded-full flex items-center justify-center text-sm"
-                      style={{ backgroundColor: '#b9d7d9', color: '#7b3b3b' }}
-                    >
-                      Profile
+              {user.partnerships && user.partnerships.length > 0 ? (
+                user.partnerships.map((partnership, index) => (
+                  <div key={partnership.id || index} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {/* Profile Picture for partnership */}
+                      {partnership.influencerProfile?.profilePicture || partnership.businessProfile?.profilePicture ? (
+                        <img
+                          src={partnership.influencerProfile?.profilePicture || partnership.businessProfile?.profilePicture || "/placeholder.svg"}
+                          alt="Partner Profile"
+                          className="w-12 h-12 rounded-full object-cover border"
+                          style={{ borderColor: '#b9d7d9' }}
+                        />
+                      ) : (
+                        <div 
+                          className="w-12 h-12 rounded-full flex items-center justify-center text-sm"
+                          style={{ backgroundColor: '#b9d7d9', color: '#7b3b3b' }}
+                        >
+                          <User size={20} />
+                        </div>
+                      )}
+                      <span style={{ color: '#7b3b3b' }}>
+                        {partnership.businessName || partnership.influencerName || 'Name'}
+                      </span>
                     </div>
-                    <span style={{ color: '#7b3b3b' }}>Name</span>
+                    <div className="flex items-center gap-2">
+                      {partnership.status === 'connected' && (
+                        <div className="w-6 h-6 flex items-center justify-center">
+                          <Star size={20} fill="#FFA500" color="#FFA500" /> {/* Star icon */}
+                        </div>
+                      )}
+                      <select 
+                        className="px-3 py-1 rounded text-sm border"
+                        style={{ 
+                          backgroundColor: '#ffffff',
+                          borderColor: '#b9d7d9',
+                          color: '#7b3b3b'
+                        }}
+                        value={partnership.status || 'connected'}
+                        readOnly
+                      >
+                        <option value="connected">Connected</option>
+                        <option value="pending">Pending</option> {/* Added pending option */}
+                        <option value="past">Past</option>
+                        <option value="declined">Declined</option>
+                        <option value="ongoing">Ongoing</option>
+                      </select>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {index === 0 && (
-                      <div className="w-6 h-6 flex items-center justify-center">
-                        <div className="w-4 h-4 bg-yellow-400 rounded-sm"></div>
-                      </div>
-                    )}
-                    <select 
-                      className="px-3 py-1 rounded text-sm border"
-                      style={{ 
-                        backgroundColor: '#ffffff',
-                        borderColor: '#b9d7d9',
-                        color: '#7b3b3b'
-                      }}
-                      defaultValue={index === 0 ? 'Connected' : index === 2 ? 'Declined' : index === 3 ? 'Ongoing' : 'Past'}
-                    >
-                      <option value="Connected">Connected</option>
-                      <option value="Past">Past</option>
-                      <option value="Declined">Declined</option>
-                      <option value="Ongoing">Ongoing</option>
-                    </select>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <p style={{ color: '#7b3b3b' }}>
+                    No partnerships yet. Start connecting with {isInfluencer ? 'businesses' : 'influencers'}!
+                  </p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>

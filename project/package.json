@@ -7,10 +7,15 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "node server.js",
+    "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
+    "seed-db": "node scripts/seed-influencers.js"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.11",
+    "concurrently": "^9.2.0",
+    "ioredis": "^5.7.0",
     "lucide-react": "^0.537.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

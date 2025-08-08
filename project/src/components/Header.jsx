@@ -126,10 +126,11 @@ export default function Header() {
             <Link to="/profile">
               <Button 
                 variant="ghost" 
-                className="rounded-full w-12 h-12 p-0 hover:opacity-80"
+                className="rounded-full w-12 h-12 p-0 hover:opacity-80 hover:scale-110 transition-all duration-200 shadow-md hover:shadow-lg border-2"
                 style={{ 
-                  backgroundColor: '#b9d7d9',
-                  color: '#7b3b3b'
+                  backgroundColor: '#f9f2e0',
+                  color: '#7b3b3b',
+                  borderColor: '#b9d7d9'
                 }}
               >
                 <User size={20} />
