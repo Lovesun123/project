@@ -1,19 +1,33 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import Label from '../components/Label';
 
 export default function Login() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     userType: 'business',
     email: '',
     password: ''
   });
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login form submitted:', formData);
+    setLoading(true);
+    
+    const result = await login(formData.email, formData.password, formData.userType);
+    
+    if (result.success) {
+      navigate('/profile');
+    } else {
+      alert('Login failed: ' + result.error);
+    }
+    
+    setLoading(false);
   };
 
   const handleChange = (e) => {
@@ -185,13 +199,14 @@ export default function Login() {
                 <div className="flex justify-center">
                   <Button
                     type="submit"
+                    disabled={loading}
                     className="rounded-full px-8 py-2 text-lg font-medium hover:opacity-80 transition-opacity"
                     style={{
                       backgroundColor: '#b9d7d9',
                       color: '#7b3b3b'
                     }}
                   >
-                    Go
+                    {loading ? 'Logging in...' : 'Go'}
                   </Button>
                 </div>
               </form>

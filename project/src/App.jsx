@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import Header from './components/Header';
 import Home from './pages/Home';
 import Pricing from './pages/Pricing';
@@ -7,6 +8,9 @@ import SignUp from './pages/SignUp';
 import SignUpBusiness from './pages/SignUpBusiness';
 import SignUpInfluencer from './pages/SignUpInfluencer';
 import Login from './pages/Login';
+import Profile from './pages/Profile';
+import Explore from './pages/Explore';
+import Requests from './pages/Requests';
 
 function App() {
   const [data, setData] = useState([])
@@ -120,22 +124,27 @@ function App() {
   }, [])
 
   return (
-    <Router>
-      <div className="min-h-screen" style={{ backgroundColor: '#e1f3f4' }}>
-        <Header />
-        <main>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/signup/business" element={<SignUpBusiness />} />
-            <Route path="/signup/influencer" element={<SignUpInfluencer />} />
-            <Route path="/login" element={<Login />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="min-h-screen" style={{ backgroundColor: '#e1f3f4' }}>
+          <Header />
+          <main>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/signup/business" element={<SignUpBusiness />} />
+              <Route path="/signup/influencer" element={<SignUpInfluencer />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/explore" element={<Explore />} />
+              <Route path="/requests" element={<Requests />} />
+            </Routes>
+          </main>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 
-export default App
+export default App;

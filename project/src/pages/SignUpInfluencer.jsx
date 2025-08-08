@@ -1,19 +1,32 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import Label from '../components/Label';
 
 export default function SignUpInfluencer() {
   const navigate = useNavigate();
+  const { signup } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Micro-Influencer sign up:', formData);
+    setLoading(true);
+    
+    const result = await signup(formData.email, formData.password, 'influencer');
+    
+    if (result.success) {
+      navigate('/profile');
+    } else {
+      alert('Signup failed: ' + result.error);
+    }
+    
+    setLoading(false);
   };
 
   const handleChange = (e) => {
@@ -160,13 +173,14 @@ export default function SignUpInfluencer() {
                 <div className="flex justify-center">
                   <Button
                     type="submit"
+                    disabled={loading}
                     className="rounded-full px-8 py-2 text-lg font-medium hover:opacity-80 transition-opacity"
                     style={{
                       backgroundColor: '#b9d7d9',
                       color: '#7b3b3b'
                     }}
                   >
-                    Go
+                    {loading ? 'Creating Account...' : 'Go'}
                   </Button>
                 </div>
               </form>
