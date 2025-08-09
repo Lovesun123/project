@@ -1,98 +1,105 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../context/AuthContext';
-import Button from '../components/Button';
-import Input from '../components/Input';
-import { X, User, Star } from 'lucide-react'; // Import Star icon
+"use client"
+
+import { useState, useEffect, useCallback } from "react"
+import { useAuth } from "../context/AuthContext"
+import Button from "../components/Button"
+import Input from "../components/Input" // Ensure Input is imported
+import { X, User, PlusCircle, Edit3, Trash2 } from "lucide-react"
+import AddInfluencerModal from "../components/AddInfluencerModal"
 
 export default function Explore() {
-  const { user, API_URL, updateProfile } = useAuth(); // Added updateProfile
-  const [influencers, setInfluencers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedInfluencer, setSelectedInfluencer] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [notification, setNotification] = useState(null);
-  const [loadingInfluencers, setLoadingInfluencers] = useState(true);
-
-  // Redirect if not a business user
-  if (!user || user.userType !== 'business') {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#e1f3f4' }}>
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4" style={{ color: '#7b3b3b' }}>
-            Access Restricted
-          </h2>
-          <p style={{ color: '#7b3b3b' }}>
-            Only Small Business accounts can access the search feature.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const { user, API_URL, updateProfile } = useAuth()
+  const [influencers, setInfluencers] = useState([])
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedInfluencer, setSelectedInfluencer] = useState(null)
+  const [showInfoModal, setShowInfoModal] = useState(false) // Renamed for clarity
+  const [showAddEditModal, setShowAddEditModal] = useState(false) // For Add/Edit modal
+  const [editingInfluencer, setEditingInfluencer] = useState(null) // State to hold influencer being edited
+  const [notification, setNotification] = useState(null)
+  const [loadingInfluencers, setLoadingInfluencers] = useState(true)
 
   const fetchInfluencers = useCallback(async () => {
-    setLoadingInfluencers(true);
+    setLoadingInfluencers(true)
     try {
-      const response = await fetch(`${API_URL}/api/data`);
+      const response = await fetch(`${API_URL}/api/data`) // Fetch all data
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
-      const allData = await response.json();
-      
-      console.log('All data fetched for Explore:', allData);
-      
+      const allData = await response.json()
+
+      // The API returns data in the format { "id": { "data": { ... } } }
       const influencerAccounts = Object.values(allData)
-        .filter(value => value.userType === 'influencer' && value.profile)
-        .map(value => ({ 
+        .map((item) => item.data) // Extract the actual data object
+        .filter((value) => value.userType === "influencer" && value.profile)
+        .map((value) => ({
           id: value.id,
           ...value,
-          profile: value.profile || {}
-        }));
-      
-      console.log('Filtered influencers for display:', influencerAccounts);
-      setInfluencers(influencerAccounts);
+          profile: value.profile || {},
+        }))
+
+      setInfluencers(influencerAccounts)
     } catch (error) {
-      console.error('Error fetching influencers:', error);
-      setInfluencers([]);
+      console.error("Error fetching influencers:", error)
+      setInfluencers([])
     } finally {
-      setLoadingInfluencers(false);
+      setLoadingInfluencers(false)
     }
-  }, [API_URL]);
+  }, [API_URL])
 
   useEffect(() => {
-    fetchInfluencers();
-  }, [fetchInfluencers]); // Depend on fetchInfluencers
+    fetchInfluencers()
+  }, [fetchInfluencers])
+
+  // Redirect if not a business user
+  if (!user || user.userType !== "business") {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#e1f3f4" }}>
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4" style={{ color: "#7b3b3b" }}>
+            Access Restricted
+          </h2>
+          <p style={{ color: "#7b3b3b" }}>Only Small Business accounts can access the search feature.</p>
+        </div>
+      </div>
+    )
+  }
 
   const handleConnect = async (influencerId) => {
     try {
-      const influencer = influencers.find(inf => inf.id === influencerId);
+      const influencer = influencers.find((inf) => inf.id === influencerId)
       if (!influencer) {
-        console.error('Influencer not found for connection:', influencerId);
-        return;
+        console.error("Influencer not found for connection:", influencerId)
+        return
       }
 
       // 1. Update influencer's requests
       const updatedInfluencer = {
         ...influencer,
-        requests: [...(influencer.requests || []), {
-          id: Date.now(), // Unique ID for this request
-          businessId: user.id,
-          businessName: `${user.profile.firstName} ${user.profile.lastName}`,
-          businessEmail: user.email,
-          businessProfile: user.profile,
-          status: 'pending',
-          createdAt: new Date().toISOString()
-        }]
-      };
+        requests: [
+          ...(influencer.requests || []),
+          {
+            id: Date.now(), // Unique ID for this request
+            businessId: user.id,
+            businessName: `${user.profile.firstName} ${user.profile.lastName}`,
+            businessEmail: user.email,
+            businessProfile: user.profile,
+            status: "pending",
+            createdAt: new Date().toISOString(),
+          },
+        ],
+      }
 
       const influencerUpdateResponse = await fetch(`${API_URL}/api/data/${influencerId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: updatedInfluencer })
-      });
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: updatedInfluencer }),
+      })
 
       if (!influencerUpdateResponse.ok) {
-        const errorText = await influencerUpdateResponse.text();
-        throw new Error(`Failed to send connection request to influencer: ${influencerUpdateResponse.status} - ${errorText}`);
+        const errorText = await influencerUpdateResponse.text()
+        throw new Error(
+          `Failed to send connection request to influencer: ${influencerUpdateResponse.status} - ${errorText}`,
+        )
       }
 
       // 2. Update business user's partnerships (as pending)
@@ -102,102 +109,132 @@ export default function Explore() {
         influencerName: `${influencer.profile.firstName} ${influencer.profile.lastName}`,
         influencerEmail: influencer.email,
         influencerProfile: influencer.profile,
-        status: 'pending', // Status from business perspective
-        requestedAt: new Date().toISOString()
-      };
+        status: "pending", // Status from business perspective
+        requestedAt: new Date().toISOString(),
+      }
 
       const updatedBusinessUser = {
         ...user,
-        partnerships: [...(user.partnerships || []), newPartnership]
-      };
-
-      const businessUpdateResponse = await fetch(`${API_URL}/api/data/${user.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: updatedBusinessUser })
-      });
-
-      if (!businessUpdateResponse.ok) {
-        const errorText = await businessUpdateResponse.text();
-        throw new Error(`Failed to update business user's partnerships: ${businessUpdateResponse.status} - ${errorText}`);
+        partnerships: [...(user.partnerships || []), newPartnership],
       }
 
-      // Update local user state in AuthContext
-      updateProfile(updatedBusinessUser.profile); // This will also update partnerships in local storage
+      // Update the user in AuthContext and localStorage
+      await updateProfile(updatedBusinessUser.profile) // This will trigger a re-render of components using user context
 
       setNotification({
-        type: 'success',
-        message: `You've connected with @${influencer.profile.firstName || 'Micro-Influencer'}!`,
-        details: 'View connection status in your profile.'
-      });
+        type: "success",
+        message: `You've connected with @${influencer.profile.firstName || "Micro-Influencer"}!`,
+        details: "View connection status in your profile.",
+      })
 
       // Re-fetch influencers to update their status on the page
-      fetchInfluencers(); 
-      setTimeout(() => setNotification(null), 5000);
-
+      fetchInfluencers()
+      setTimeout(() => setNotification(null), 5000)
     } catch (error) {
-      console.error('Error connecting:', error);
+      console.error("Error connecting:", error)
       setNotification({
-        type: 'error',
-        message: 'Failed to send connection request.',
-        details: error.message
-      });
-      setTimeout(() => setNotification(null), 5000);
+        type: "error",
+        message: "Failed to send connection request.",
+        details: error.message,
+      })
+      setTimeout(() => setNotification(null), 5000)
     }
-  };
+  }
 
-  const filteredInfluencers = influencers.filter(influencer => {
+  const handleDeleteInfluencer = async (influencerId) => {
+    if (!window.confirm("Are you sure you want to delete this influencer?")) return
+    try {
+      const response = await fetch(`${API_URL}/api/data/${influencerId}`, {
+        method: "DELETE",
+      })
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Failed to delete influencer: ${response.status} - ${errorText}`)
+      }
+      setNotification({
+        type: "success",
+        message: "Influencer deleted successfully!",
+        details: "",
+      })
+      fetchInfluencers() // Re-fetch the list
+      setTimeout(() => setNotification(null), 3000)
+    } catch (error) {
+      console.error("Error deleting influencer:", error)
+      setNotification({
+        type: "error",
+        message: "Failed to delete influencer.",
+        details: error.message,
+      })
+      setTimeout(() => setNotification(null), 5000)
+    }
+  }
+
+  const handleEditInfluencer = (influencer) => {
+    setEditingInfluencer(influencer)
+    setShowAddEditModal(true)
+  }
+
+  const handleAddInfluencerClick = () => {
+    setEditingInfluencer(null) // Clear any previous editing state
+    setShowAddEditModal(true)
+  }
+
+  const handleModalClose = () => {
+    setShowAddEditModal(false)
+    setEditingInfluencer(null)
+  }
+
+  const handleInfluencerAddedOrUpdated = () => {
+    fetchInfluencers() // Re-fetch the list
+    setSearchTerm("") // Clear the search term to show the new/updated influencer
+    handleModalClose() // Close the modal
+  }
+
+  const filteredInfluencers = influencers.filter((influencer) => {
     // If no search term, show all influencers that have a profile
     if (!searchTerm.trim()) {
-      return influencer.profile && Object.keys(influencer.profile).length > 0;
+      return influencer.profile && Object.keys(influencer.profile).length > 0
     }
-    
-    const profile = influencer.profile || {};
-    const searchLower = searchTerm.toLowerCase();
-    
+
+    const profile = influencer.profile || {}
+    const searchLower = searchTerm.toLowerCase()
+
     return (
-      (profile.firstName || '').toLowerCase().includes(searchLower) ||
-      (profile.lastName || '').toLowerCase().includes(searchLower) ||
-      (profile.niches || '').toLowerCase().includes(searchLower) ||
-      (profile.location || '').toLowerCase().includes(searchLower) ||
-      (profile.platform || '').toLowerCase().includes(searchLower)
-    );
-  });
+      (profile.firstName || "").toLowerCase().includes(searchLower) ||
+      (profile.lastName || "").toLowerCase().includes(searchLower) ||
+      (profile.niches || "").toLowerCase().includes(searchLower) ||
+      (profile.location || "").toLowerCase().includes(searchLower) ||
+      (profile.platform || "").toLowerCase().includes(searchLower)
+    )
+  })
 
   // Function to check if a business has already sent a request to an influencer
   const hasSentRequest = (influencerId) => {
-    return user?.partnerships?.some(p => p.influencerId === influencerId && p.status === 'pending');
-  };
+    return user?.partnerships?.some(
+      (p) => p.influencerId === influencerId && (p.status === "pending" || p.status === "connected"),
+    )
+  }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#e1f3f4' }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#e1f3f4" }}>
       {/* Notification */}
       {notification && (
         <div className="fixed top-20 right-8 z-50">
-          <div 
+          <div
             className="p-4 rounded-lg shadow-lg border-2 max-w-sm"
-            style={{ 
-              backgroundColor: notification.type === 'success' ? '#d4edda' : '#f8d7da',
-              borderColor: notification.type === 'success' ? '#28a745' : '#dc3545',
-              color: notification.type === 'success' ? '#155724' : '#721c24'
+            style={{
+              backgroundColor: notification.type === "success" ? "#d4edda" : "#f8d7da",
+              borderColor: notification.type === "success" ? "#28a745" : "#dc3545",
+              color: notification.type === "success" ? "#155724" : "#721c24",
             }}
           >
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-yellow-400 rounded flex items-center justify-center">
-                🔔
-              </div>
+              <div className="w-8 h-8 bg-yellow-400 rounded flex items-center justify-center">🔔</div>
               <div className="flex-1">
-                <p className="font-semibold">
-                  {notification.message}
-                </p>
-                <p className="text-sm mt-1">
-                  {notification.details}
-                </p>
+                <p className="font-semibold">{notification.message}</p>
+                <p className="text-sm mt-1">{notification.details}</p>
               </div>
-              <button 
-                onClick={() => setNotification(null)}
-                className="text-gray-500 hover:text-gray-700"
-              >
+              <button onClick={() => setNotification(null)} className="text-gray-500 hover:text-gray-700">
                 <X size={16} />
               </button>
             </div>
@@ -209,109 +246,163 @@ export default function Explore() {
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 
-              className="text-4xl font-bold mb-4"
-              style={{ color: '#7b3b3b' }}
-            >
+            <h1 className="text-4xl font-bold mb-4" style={{ color: "#7b3b3b" }}>
               Discover Creators Built for Your Brand
             </h1>
-            <p 
-              className="text-xl mb-8"
-              style={{ color: '#7b3b3b' }}
-            >
+            <p className="text-xl mb-8" style={{ color: "#7b3b3b" }}>
               Just search, select, and start growing.
             </p>
 
-            {/* Search Bar */}
-            <div className="max-w-4xl mx-auto">
+            {/* Search Bar and Add Influencer Button */}
+            <div className="max-w-4xl mx-auto flex gap-4 items-center">
               <Input
                 type="text"
-                placeholder="Search (type in specific niche)"
+                placeholder="Search (niche, location, platform)"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-6 py-4 text-lg rounded-lg"
-                style={{ 
-                  backgroundColor: '#ffffff',
-                  borderColor: '#b9d7d9'
+                className="flex-1 px-6 py-4 text-lg rounded-lg"
+                style={{
+                  backgroundColor: "#ffffff",
+                  borderColor: "#b9d7d9",
                 }}
               />
+              <Button
+                onClick={handleAddInfluencerClick}
+                className="px-6 py-4 rounded-full text-white font-medium flex items-center gap-2"
+                style={{ backgroundColor: "#7b3b3b" }}
+              >
+                <PlusCircle size={20} className="mr-2" />
+                Add Influencer
+              </Button>
             </div>
           </div>
 
           {/* Loading State */}
-          {loadingInfluencers && (
+          {loadingInfluencers ? (
             <div className="text-center py-12">
-              <p className="text-xl" style={{ color: '#7b3b3b' }}>Loading influencers...</p>
+              <div
+                className="border-4 border-gray-200 border-t-4 border-t-brown-dark rounded-full w-10 h-10 animate-spin mx-auto mb-4"
+                style={{ borderColor: "rgba(0, 0, 0, 0.1)", borderTopColor: "#7b3b3b" }}
+              ></div>
+              <p className="text-xl" style={{ color: "#7b3b3b" }}>
+                Loading influencers...
+              </p>
             </div>
-          )}
-
-          {/* Influencer Grid */}
-          {!loadingInfluencers && (
+          ) : filteredInfluencers.length === 0 && searchTerm.trim() ? (
+            <div className="text-center py-12">
+              <h2 className="text-2xl font-bold mb-2" style={{ color: "#7b3b3b" }}>
+                No influencers found
+              </h2>
+              <p className="text-xl" style={{ color: "#7b3b3b" }}>
+                Try adjusting your search terms.
+              </p>
+            </div>
+          ) : filteredInfluencers.length === 0 && !searchTerm.trim() ? (
+            <div className="text-center py-12">
+              <h2 className="text-2xl font-bold mb-2" style={{ color: "#7b3b3b" }}>
+                No micro-influencers have created profiles yet.
+              </h2>
+              <p className="text-xl mb-4" style={{ color: "#7b3b3b" }}>
+                Start by adding your first micro-influencer!
+              </p>
+              <Button
+                onClick={handleAddInfluencerClick}
+                className="px-6 py-4 rounded-full text-white font-medium flex items-center gap-2"
+                style={{ backgroundColor: "#7b3b3b" }}
+              >
+                <PlusCircle size={20} className="mr-2" />
+                Add Your First Influencer
+              </Button>
+            </div>
+          ) : (
             <div className="grid grid-cols-3 gap-8">
               {filteredInfluencers.map((influencer) => (
-                <div 
+                <div
                   key={influencer.id}
-                  className="rounded-lg overflow-hidden"
-                  style={{ backgroundColor: '#b9d7d9' }}
+                  className="rounded-lg overflow-hidden shadow-md transition-transform duration-200 hover:scale-[1.02]"
+                  style={{ backgroundColor: "#b9d7d9" }}
                 >
                   {/* Profile Section */}
                   <div className="p-6 text-center">
                     {/* Profile Picture */}
                     {influencer.profile?.profilePicture ? (
-                      <img
-                        src={influencer.profile.profilePicture || "/placeholder.svg"}
-                        alt={`${influencer.profile?.firstName} ${influencer.profile?.lastName}`}
-                        className="w-20 h-20 mx-auto rounded-full object-cover mb-4 border-2"
-                        style={{ borderColor: '#f9f2e0' }}
-                      />
+                      <div className="w-full h-[180px] overflow-hidden relative">
+                        <img
+                          src={influencer.profile.profilePicture || "/placeholder.svg"}
+                          alt={`${influencer.profile?.firstName} ${influencer.profile?.lastName}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.onerror = null
+                            e.target.src = "/diverse-influencer-profile.png"
+                          }}
+                          loading="lazy"
+                        />
+                      </div>
                     ) : (
-                      <div 
-                        className="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-lg font-semibold mb-4 border-2"
-                        style={{ backgroundColor: '#f9f2e0', color: '#7b3b3b', borderColor: '#c4b590' }}
+                      <div
+                        className="w-full h-[180px] flex items-center justify-center text-6xl font-bold"
+                        style={{ backgroundColor: "#f9f2e0", color: "#7b3b3b" }}
                       >
-                        <User size={32} />
+                        <User size={64} />
                       </div>
                     )}
-                    
-                    <h3 
-                      className="text-lg font-semibold mb-2"
-                      style={{ color: '#7b3b3b' }}
-                    >
-                      {influencer.profile?.firstName && influencer.profile?.lastName 
+
+                    <h3 className="text-lg font-semibold mt-4 mb-2" style={{ color: "#7b3b3b" }}>
+                      {influencer.profile?.firstName && influencer.profile?.lastName
                         ? `${influencer.profile.firstName} ${influencer.profile.lastName}`
-                        : 'Micro-Influencer'
-                      }
+                        : "Micro-Influencer"}
                     </h3>
-                    
-                    <Button
-                      onClick={() => handleConnect(influencer.id)}
-                      className="px-6 py-2 rounded-full text-white font-medium mb-4"
-                      style={{ backgroundColor: hasSentRequest(influencer.id) ? '#7b3b3b' : '#2a2829' }}
-                      disabled={hasSentRequest(influencer.id)}
-                    >
-                      {hasSentRequest(influencer.id) ? 'PENDING' : 'CONNECT'}
-                    </Button>
+                    <p className="text-sm mb-4" style={{ color: "#7b3b3b" }}>
+                      {influencer.profile?.bio || "No bio provided."}
+                    </p>
+
+                    <div className="flex justify-center gap-3 mb-4">
+                      <button
+                        className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        onClick={() => handleEditInfluencer(influencer)}
+                        title="Edit Influencer"
+                        style={{ color: "#7b3b3b" }}
+                      >
+                        <Edit3 size={16} />
+                      </button>
+                      <button
+                        className="p-2 rounded-full hover:bg-red-100 transition-colors"
+                        onClick={() => handleDeleteInfluencer(influencer.id)}
+                        title="Delete Influencer"
+                        style={{ color: "#dc3545" }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                      <Button
+                        onClick={() => handleConnect(influencer.id)}
+                        className="px-4 py-2 rounded-full text-white font-medium text-sm"
+                        style={{ backgroundColor: hasSentRequest(influencer.id) ? "#7b3b3b" : "#2a2829" }}
+                        disabled={hasSentRequest(influencer.id)}
+                      >
+                        {hasSentRequest(influencer.id) ? "PENDING" : "CONNECT"}
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Info Section */}
-                  <div 
-                    className="p-4 text-white"
-                    style={{ backgroundColor: '#7b3b3b' }}
-                  >
+                  <div className="p-4 text-white" style={{ backgroundColor: "#7b3b3b" }}>
                     <div className="space-y-1 text-sm">
                       <div>
-                        <span className="font-semibold">Media:</span> {influencer.profile?.platform || 'N/A'}
+                        <span className="font-semibold">Platform:</span> {influencer.profile?.platform || "N/A"}
                       </div>
                       <div>
-                        <span className="font-semibold">Followers:</span> {influencer.profile?.followerCount || 'N/A'}
+                        <span className="font-semibold">Followers:</span> {influencer.profile?.followerCount || "N/A"}
                       </div>
                       <div>
-                        <span className="font-semibold">Demo:</span>
+                        <span className="font-semibold">Niche(s):</span> {influencer.profile?.niches || "N/A"}
                       </div>
-                      <button 
+                      <div>
+                        <span className="font-semibold">Pricing:</span> {influencer.profile?.pricingRange || "N/A"}
+                      </div>
+                      <button
                         onClick={() => {
-                          setSelectedInfluencer(influencer);
-                          setShowModal(true);
+                          setSelectedInfluencer(influencer)
+                          setShowInfoModal(true)
                         }}
                         className="underline hover:opacity-80"
                       >
@@ -323,62 +414,35 @@ export default function Explore() {
               ))}
             </div>
           )}
-
-          {!loadingInfluencers && filteredInfluencers.length === 0 && searchTerm.trim() && (
-            <div className="text-center py-12">
-              <p 
-                className="text-xl"
-                style={{ color: '#7b3b3b' }}
-              >
-                No influencers found matching "{searchTerm}". Try a different search term.
-              </p>
-            </div>
-          )}
-
-          {!loadingInfluencers && filteredInfluencers.length === 0 && !searchTerm.trim() && influencers.length === 0 && (
-            <div className="text-center py-12">
-              <p 
-                className="text-xl"
-                style={{ color: '#7b3b3b' }}
-              >
-                No micro-influencers have created profiles yet.
-              </p>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Modal */}
-      {showModal && selectedInfluencer && (
+      {/* Other Information Modal */}
+      {showInfoModal && selectedInfluencer && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div 
-            className="p-8 rounded-lg max-w-md w-full mx-4 relative"
-            style={{ backgroundColor: '#f9f2e0' }}
-          >
-            <button 
-              onClick={() => setShowModal(false)}
+          <div className="p-8 rounded-lg max-w-md w-full mx-4 relative" style={{ backgroundColor: "#f9f2e0" }}>
+            <button
+              onClick={() => setShowInfoModal(false)}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
             >
               <X size={24} />
             </button>
-            
-            <h3 
+
+            <h3
               className="text-2xl font-semibold mb-6 text-center border-b-2 pb-2"
-              style={{ 
-                color: '#7b3b3b',
-                borderColor: '#7b3b3b'
+              style={{
+                color: "#7b3b3b",
+                borderColor: "#7b3b3b",
               }}
             >
               Other Information:
             </h3>
-            
-            <div className="space-y-4" style={{ color: '#7b3b3b' }}>
+
+            <div className="space-y-4" style={{ color: "#7b3b3b" }}>
               <div>
                 <strong>BIO</strong>
                 {selectedInfluencer.profile?.bio ? (
-                  <p className="mt-2 p-2 bg-white rounded border">
-                    {selectedInfluencer.profile.bio}
-                  </p>
+                  <p className="mt-2 p-2 bg-white rounded border">{selectedInfluencer.profile.bio}</p>
                 ) : (
                   <div>
                     <div className="border-b-2 border-current mt-1 mb-2"></div>
@@ -387,34 +451,44 @@ export default function Explore() {
                   </div>
                 )}
               </div>
-              
+
               <div>
-                <strong>Age (optional):</strong> {selectedInfluencer.profile?.age || 'Not specified'}
+                <strong>Age (optional):</strong> {selectedInfluencer.profile?.age || "Not specified"}
               </div>
-              
+
               <div>
-                <strong>Location (optional):</strong> {selectedInfluencer.profile?.location || 'Not specified'}
+                <strong>Location (optional):</strong> {selectedInfluencer.profile?.location || "Not specified"}
               </div>
-              
+
               <div>
-                <strong>Gender (optional):</strong> {selectedInfluencer.profile?.gender || 'Not specified'}
+                <strong>Gender (optional):</strong> {selectedInfluencer.profile?.gender || "Not specified"}
               </div>
-              
+
               <div>
-                <strong>Target audience:</strong> {selectedInfluencer.profile?.targetAudience || 'Not specified'}
+                <strong>Target audience:</strong> {selectedInfluencer.profile?.targetAudience || "Not specified"}
               </div>
-              
+
               <div>
-                <strong>Niche(s):</strong> {selectedInfluencer.profile?.niches || 'Not specified'}
+                <strong>Niche(s):</strong> {selectedInfluencer.profile?.niches || "Not specified"}
               </div>
-              
+
               <div>
-                <strong>Pricing range:</strong> {selectedInfluencer.profile?.pricingRange || 'Not specified'}
+                <strong>Pricing range:</strong> {selectedInfluencer.profile?.pricingRange || "Not specified"}
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Add/Edit Influencer Modal */}
+      {showAddEditModal && (
+        <AddInfluencerModal
+          onClose={handleModalClose}
+          onInfluencerAdded={handleInfluencerAddedOrUpdated}
+          API_URL={API_URL}
+          influencer={editingInfluencer} // Pass the influencer object for editing
+        />
+      )}
     </div>
-  );
+  )
 }
