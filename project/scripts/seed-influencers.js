@@ -1,14 +1,88 @@
-const Redis = require('ioredis');
+import Redis from "ioredis" // Changed from require('ioredis')
 
 // Connect to Redis
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379")
 
 const generateInfluencer = (index) => {
-  const firstNames = ["Ava", "Liam", "Olivia", "Noah", "Emma", "Oliver", "Charlotte", "Elijah", "Amelia", "James", "Sophia", "Benjamin", "Isabella", "Lucas", "Mia", "Henry", "Evelyn", "Alexander", "Harper", "Michael"];
-  const lastNames = ["Smith", "Jones", "Williams", "Brown", "Davis", "Miller", "Wilson", "Moore", "Taylor", "Anderson", "Thomas", "Jackson", "White", "Harris", "Martin", "Thompson", "Garcia", "Martinez", "Robinson", "Clark"];
-  const platforms = ["Instagram", "TikTok", "YouTube", "Blog", "Facebook"];
-  const niches = ["Skincare", "Makeup", "Haircare", "Nails", "Fragrance", "Clean Beauty", "Vegan Cosmetics", "Luxury Beauty", "Affordable Finds", "DIY Beauty"];
-  const locations = ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose", "Austin", "Jacksonville", "Fort Worth", "Columbus", "Charlotte", "San Francisco", "Indianapolis", "Seattle", "Denver", "Washington"];
+  const firstNames = [
+    "Ava",
+    "Liam",
+    "Olivia",
+    "Noah",
+    "Emma",
+    "Oliver",
+    "Charlotte",
+    "Elijah",
+    "Amelia",
+    "James",
+    "Sophia",
+    "Benjamin",
+    "Isabella",
+    "Lucas",
+    "Mia",
+    "Henry",
+    "Evelyn",
+    "Alexander",
+    "Harper",
+    "Michael",
+  ]
+  const lastNames = [
+    "Smith",
+    "Jones",
+    "Williams",
+    "Brown",
+    "Davis",
+    "Miller",
+    "Wilson",
+    "Moore",
+    "Taylor",
+    "Anderson",
+    "Thomas",
+    "Jackson",
+    "White",
+    "Harris",
+    "Martin",
+    "Thompson",
+    "Garcia",
+    "Martinez",
+    "Robinson",
+    "Clark",
+  ]
+  const platforms = ["Instagram", "TikTok", "YouTube", "Blog", "Facebook"]
+  const niches = [
+    "Skincare",
+    "Makeup",
+    "Haircare",
+    "Nails",
+    "Fragrance",
+    "Clean Beauty",
+    "Vegan Cosmetics",
+    "Luxury Beauty",
+    "Affordable Finds",
+    "DIY Beauty",
+  ]
+  const locations = [
+    "New York",
+    "Los Angeles",
+    "Chicago",
+    "Houston",
+    "Phoenix",
+    "Philadelphia",
+    "San Antonio",
+    "San Diego",
+    "Dallas",
+    "San Jose",
+    "Austin",
+    "Jacksonville",
+    "Fort Worth",
+    "Columbus",
+    "Charlotte",
+    "San Francisco",
+    "Indianapolis",
+    "Seattle",
+    "Denver",
+    "Washington",
+  ]
   const bios = [
     "Passionate about natural skincare and sustainable beauty. Sharing my journey to glowing skin!",
     "Makeup artist and beauty enthusiast. Love creating bold looks and reviewing new products.",
@@ -29,14 +103,14 @@ const generateInfluencer = (index) => {
     "Bringing you the best of luxury beauty without the fluff. Honest reviews only.",
     "From farm to face: my journey into natural and organic skincare.",
     "Mastering the art of makeup, one brush stroke at a time. Join my beauty community!",
-    "All about that glow! Sharing my secrets for radiant skin and a healthy lifestyle."
-  ];
+    "All about that glow! Sharing my secrets for radiant skin and a healthy lifestyle.",
+  ]
 
-  const firstName = firstNames[index % firstNames.length];
-  const lastName = lastNames[index % lastNames.length];
-  const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${index}@example.com`;
-  const userType = 'influencer';
-  const id = `${userType}_${Date.now() + index}`; // Ensure unique ID
+  const firstName = firstNames[index % firstNames.length]
+  const lastName = lastNames[index % lastNames.length]
+  const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${index}@example.com`
+  const userType = "influencer"
+  const id = `${userType}_${Date.now() + index}` // Ensure unique ID
 
   return {
     id,
@@ -49,31 +123,33 @@ const generateInfluencer = (index) => {
       profilePicture: `/placeholder.svg?height=100&width=100&query=${firstName}%20${lastName}%20portrait%20beauty%20influencer`,
       age: (20 + (index % 10)).toString(), // Age between 20-29
       location: locations[index % locations.length],
-      gender: index % 2 === 0 ? 'Female' : 'Male',
+      gender: index % 2 === 0 ? "Female" : "Male",
       platform: platforms[index % platforms.length],
       followerCount: `${(Math.floor(Math.random() * 90) + 10) * 1000}`, // 10k-99k
       niches: niches[index % niches.length],
       pricingRange: `$${(Math.floor(Math.random() * 5) + 1) * 25}-${(Math.floor(Math.random() * 5) + 6) * 25}/post`, // $25-125/post
     },
     partnerships: [],
-    requests: []
-  };
-};
+    requests: [],
+  }
+}
 
 const seedInfluencers = async (count = 20) => {
-  console.log(`Attempting to seed ${count} influencer profiles...`);
+  console.log(`Attempting to seed ${count} influencer profiles...`)
   try {
     for (let i = 0; i < count; i++) {
-      const influencerData = generateInfluencer(i);
-      await redis.set(influencerData.id, JSON.stringify(influencerData));
-      console.log(`Seeded influencer: ${influencerData.profile.firstName} ${influencerData.profile.lastName} (${influencerData.id})`);
+      const influencerData = generateInfluencer(i)
+      await redis.set(influencerData.id, JSON.stringify(influencerData))
+      console.log(
+        `Seeded influencer: ${influencerData.profile.firstName} ${influencerData.profile.lastName} (${influencerData.id})`,
+      )
     }
-    console.log(`Successfully seeded ${count} influencer profiles.`);
+    console.log(`Successfully seeded ${count} influencer profiles.`)
   } catch (error) {
-    console.error('Error seeding influencers:', error);
+    console.error("Error seeding influencers:", error)
   } finally {
-    redis.quit(); // Close Redis connection
+    redis.quit() // Close Redis connection
   }
-};
+}
 
-seedInfluencers(20);
+seedInfluencers(20)
