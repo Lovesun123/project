@@ -11,6 +11,7 @@ export default function AddInfluencerModal({ onClose, onInfluencerAdded, API_URL
     firstName: "",
     lastName: "",
     email: "",
+    username: "", // Added username
     profilePicture: "",
     bio: "",
     age: "",
@@ -32,6 +33,7 @@ export default function AddInfluencerModal({ onClose, onInfluencerAdded, API_URL
         firstName: editingInfluencer.profile?.firstName || "",
         lastName: editingInfluencer.profile?.lastName || "",
         email: editingInfluencer.email || "",
+        username: editingInfluencer.profile?.username || "", // Pre-fill username
         profilePicture: editingInfluencer.profile?.profilePicture || "",
         bio: editingInfluencer.profile?.bio || "",
         age: editingInfluencer.profile?.age || "",
@@ -48,6 +50,7 @@ export default function AddInfluencerModal({ onClose, onInfluencerAdded, API_URL
         firstName: "",
         lastName: "",
         email: "",
+        username: "", // Reset username
         profilePicture: "",
         bio: "",
         age: "",
@@ -81,6 +84,7 @@ export default function AddInfluencerModal({ onClose, onInfluencerAdded, API_URL
         profile: {
           firstName: formData.firstName,
           lastName: formData.lastName,
+          username: formData.username, // Include username in profile
           profilePicture: formData.profilePicture,
           bio: formData.bio,
           age: formData.age,
@@ -192,6 +196,21 @@ export default function AddInfluencerModal({ onClose, onInfluencerAdded, API_URL
               value={formData.email}
               onChange={handleChange}
               required
+              className="mt-2 border-2 rounded-md"
+              style={{ borderColor: "#b9d7d9", backgroundColor: "#ffffff" }}
+            />
+          </div>
+          <div>
+            <Label htmlFor="username" style={{ color: "#7b3b3b" }}>
+              Username
+            </Label>
+            <Input
+              id="username"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              required
+              placeholder="e.g., @influencerhandle"
               className="mt-2 border-2 rounded-md"
               style={{ borderColor: "#b9d7d9", backgroundColor: "#ffffff" }}
             />

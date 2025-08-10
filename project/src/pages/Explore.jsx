@@ -3,33 +3,32 @@
 import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "../context/AuthContext"
 import Button from "../components/Button"
-import Input from "../components/Input" // Ensure Input is imported
+import Input from "../components/Input"
 import { X, User, PlusCircle, Edit3, Trash2 } from "lucide-react"
 import AddInfluencerModal from "../components/AddInfluencerModal"
 
 export default function Explore() {
-  const { user, API_URL, updateProfile } = useAuth()
+  const { user, API_URL, updateProfile, updateUser } = useAuth()
   const [influencers, setInfluencers] = useState([])
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedInfluencer, setSelectedInfluencer] = useState(null)
-  const [showInfoModal, setShowInfoModal] = useState(false) // Renamed for clarity
-  const [showAddEditModal, setShowAddEditModal] = useState(false) // For Add/Edit modal
-  const [editingInfluencer, setEditingInfluencer] = useState(null) // State to hold influencer being edited
+  const [showInfoModal, setShowInfoModal] = useState(false)
+  const [showAddEditModal, setShowAddEditModal] = useState(false)
+  const [editingInfluencer, setEditingInfluencer] = useState(null)
   const [notification, setNotification] = useState(null)
   const [loadingInfluencers, setLoadingInfluencers] = useState(true)
 
   const fetchInfluencers = useCallback(async () => {
     setLoadingInfluencers(true)
     try {
-      const response = await fetch(`${API_URL}/api/data`) // Fetch all data
+      const response = await fetch(`${API_URL}/api/data`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       const allData = await response.json()
 
-      // The API returns data in the format { "id": { "data": { ... } } }
       const influencerAccounts = Object.values(allData)
-        .map((item) => item.data) // Extract the actual data object
+        .map((item) => item.data)
         .filter((value) => value.userType === "influencer" && value.profile)
         .map((value) => ({
           id: value.id,
@@ -50,7 +49,6 @@ export default function Explore() {
     fetchInfluencers()
   }, [fetchInfluencers])
 
-  // Redirect if not a business user
   if (!user || user.userType !== "business") {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#e1f3f4" }}>
@@ -72,13 +70,13 @@ export default function Explore() {
         return
       }
 
-      // 1. Update influencer's requests
+      // 1. Update influencer's requests (still pending for them to accept)
       const updatedInfluencer = {
         ...influencer,
         requests: [
           ...(influencer.requests || []),
           {
-            id: Date.now(), // Unique ID for this request
+            id: Date.now(),
             businessId: user.id,
             businessName: `${user.profile.firstName} ${user.profile.lastName}`,
             businessEmail: user.email,
@@ -102,14 +100,14 @@ export default function Explore() {
         )
       }
 
-      // 2. Update business user's partnerships (as pending)
+      // 2. Update business user's partnerships (immediately set to 'connected' as per user request)
       const newPartnership = {
-        id: Date.now() + 1, // Unique ID for this partnership entry
+        id: Date.now() + 1,
         influencerId: influencer.id,
         influencerName: `${influencer.profile.firstName} ${influencer.profile.lastName}`,
         influencerEmail: influencer.email,
         influencerProfile: influencer.profile,
-        status: "pending", // Status from business perspective
+        status: "connected", // Set to 'connected' immediately for the business user
         requestedAt: new Date().toISOString(),
       }
 
@@ -118,8 +116,7 @@ export default function Explore() {
         partnerships: [...(user.partnerships || []), newPartnership],
       }
 
-      // Update the user in AuthContext and localStorage
-      await updateProfile(updatedBusinessUser.profile) // This will trigger a re-render of components using user context
+      await updateUser(updatedBusinessUser)
 
       setNotification({
         type: "success",
@@ -127,7 +124,6 @@ export default function Explore() {
         details: "View connection status in your profile.",
       })
 
-      // Re-fetch influencers to update their status on the page
       fetchInfluencers()
       setTimeout(() => setNotification(null), 5000)
     } catch (error) {
@@ -156,7 +152,7 @@ export default function Explore() {
         message: "Influencer deleted successfully!",
         details: "",
       })
-      fetchInfluencers() // Re-fetch the list
+      fetchInfluencers()
       setTimeout(() => setNotification(null), 3000)
     } catch (error) {
       console.error("Error deleting influencer:", error)
@@ -175,7 +171,7 @@ export default function Explore() {
   }
 
   const handleAddInfluencerClick = () => {
-    setEditingInfluencer(null) // Clear any previous editing state
+    setEditingInfluencer(null)
     setShowAddEditModal(true)
   }
 
@@ -185,13 +181,12 @@ export default function Explore() {
   }
 
   const handleInfluencerAddedOrUpdated = () => {
-    fetchInfluencers() // Re-fetch the list
-    setSearchTerm("") // Clear the search term to show the new/updated influencer
-    handleModalClose() // Close the modal
+    fetchInfluencers()
+    setSearchTerm("")
+    handleModalClose()
   }
 
   const filteredInfluencers = influencers.filter((influencer) => {
-    // If no search term, show all influencers that have a profile
     if (!searchTerm.trim()) {
       return influencer.profile && Object.keys(influencer.profile).length > 0
     }
@@ -202,17 +197,16 @@ export default function Explore() {
     return (
       (profile.firstName || "").toLowerCase().includes(searchLower) ||
       (profile.lastName || "").toLowerCase().includes(searchLower) ||
+      (profile.username || "").toLowerCase().includes(searchLower) || // Search by username
       (profile.niches || "").toLowerCase().includes(searchLower) ||
       (profile.location || "").toLowerCase().includes(searchLower) ||
       (profile.platform || "").toLowerCase().includes(searchLower)
     )
   })
 
-  // Function to check if a business has already sent a request to an influencer
-  const hasSentRequest = (influencerId) => {
-    return user?.partnerships?.some(
-      (p) => p.influencerId === influencerId && (p.status === "pending" || p.status === "connected"),
-    )
+  const getPartnershipStatus = (influencerId) => {
+    const partnership = user?.partnerships?.find((p) => p.influencerId === influencerId)
+    return partnership ? partnership.status : null
   }
 
   return (
@@ -257,7 +251,7 @@ export default function Explore() {
             <div className="max-w-4xl mx-auto flex gap-4 items-center">
               <Input
                 type="text"
-                placeholder="Search (niche, location, platform)"
+                placeholder="Search (niche, location, platform, username)" // Updated placeholder
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="flex-1 px-6 py-4 text-lg rounded-lg"
@@ -352,6 +346,11 @@ export default function Explore() {
                         ? `${influencer.profile.firstName} ${influencer.profile.lastName}`
                         : "Micro-Influencer"}
                     </h3>
+                    {influencer.profile?.username && (
+                      <p className="text-sm mb-2" style={{ color: "#7b3b3b" }}>
+                        @{influencer.profile.username}
+                      </p>
+                    )}
                     <p className="text-sm mb-4" style={{ color: "#7b3b3b" }}>
                       {influencer.profile?.bio || "No bio provided."}
                     </p>
@@ -373,14 +372,32 @@ export default function Explore() {
                       >
                         <Trash2 size={16} />
                       </button>
-                      <Button
-                        onClick={() => handleConnect(influencer.id)}
-                        className="px-4 py-2 rounded-full text-white font-medium text-sm"
-                        style={{ backgroundColor: hasSentRequest(influencer.id) ? "#7b3b3b" : "#2a2829" }}
-                        disabled={hasSentRequest(influencer.id)}
-                      >
-                        {hasSentRequest(influencer.id) ? "PENDING" : "CONNECT"}
-                      </Button>
+                      {(() => {
+                        const currentPartnershipStatus = getPartnershipStatus(influencer.id)
+
+                        return (
+                          <Button
+                            onClick={() => handleConnect(influencer.id)}
+                            className="px-4 py-2 rounded-full text-white font-medium text-sm"
+                            style={{
+                              backgroundColor:
+                                currentPartnershipStatus === "connected"
+                                  ? "#7b3b3b"
+                                  : currentPartnershipStatus === "pending"
+                                    ? "#b9d7d9"
+                                    : "#2a2829",
+                              color: currentPartnershipStatus === "pending" ? "#7b3b3b" : "#ffffff",
+                            }}
+                            disabled={currentPartnershipStatus !== null}
+                          >
+                            {currentPartnershipStatus === "connected"
+                              ? "CONNECTED"
+                              : currentPartnershipStatus === "pending"
+                                ? "PENDING"
+                                : "CONNECT"}
+                          </Button>
+                        )
+                      })()}
                     </div>
                   </div>
 
@@ -486,7 +503,7 @@ export default function Explore() {
           onClose={handleModalClose}
           onInfluencerAdded={handleInfluencerAddedOrUpdated}
           API_URL={API_URL}
-          influencer={editingInfluencer} // Pass the influencer object for editing
+          influencer={editingInfluencer}
         />
       )}
     </div>

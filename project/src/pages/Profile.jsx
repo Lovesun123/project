@@ -10,7 +10,7 @@ import BioEditor from "../components/BioEditor"
 import { Star, User } from "lucide-react" // Import Star and User icon
 
 export default function Profile() {
-  const { user, updateProfile } = useAuth()
+  const { user, updateProfile, updatePartnershipStatus } = useAuth() // Destructure updatePartnershipStatus
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState(user?.profile || {})
   const [loading, setLoading] = useState(false)
@@ -46,6 +46,10 @@ export default function Profile() {
     if (!result.success) {
       alert("Failed to update bio")
     }
+  }
+
+  const handlePartnershipStatusChange = async (partnershipId, newStatus) => {
+    await updatePartnershipStatus(partnershipId, newStatus)
   }
 
   const handleSubmit = async (e) => {
@@ -423,17 +427,27 @@ export default function Profile() {
                           <User size={20} />
                         </div>
                       )}
-                      <span style={{ color: "#7b3b3b" }}>
-                        {partnership.businessName || partnership.influencerName || "Name"}
-                      </span>
+                      <div className="flex flex-col">
+                        <span style={{ color: "#7b3b3b" }}>
+                          {partnership.businessName || partnership.influencerName || "Name"}
+                        </span>
+                        {partnership.influencerProfile?.username && (
+                          <span className="text-sm" style={{ color: "#919191" }}>
+                            @{partnership.influencerProfile.username}
+                          </span>
+                        )}
+                        {partnership.influencerEmail && (
+                          <span className="text-sm" style={{ color: "#919191" }}>
+                            {partnership.influencerEmail}
+                          </span>
+                        )}
+                      </div>
                     </a>
                     <div className="flex flex-col items-end gap-1">
-                      {" "}
-                      {/* Changed to flex-col and items-end */}
                       <div className="flex items-center gap-2">
                         {partnership.status === "connected" && (
                           <div className="w-6 h-6 flex items-center justify-center">
-                            <Star size={20} fill="#FFA500" color="#FFA500" /> {/* Star icon */}
+                            <Star size={20} fill="#FFA500" color="#FFA500" />
                           </div>
                         )}
                         <select
@@ -444,20 +458,16 @@ export default function Profile() {
                             color: "#7b3b3b",
                           }}
                           value={partnership.status || "connected"}
-                          readOnly
+                          onChange={(e) => handlePartnershipStatusChange(partnership.id, e.target.value)}
                         >
                           <option value="connected">Connected</option>
-                          <option value="pending">Pending</option> {/* Added pending option */}
+                          <option value="pending">Pending</option>
                           <option value="past">Past</option>
                           <option value="declined">Declined</option>
                           <option value="ongoing">Ongoing</option>
                         </select>
                       </div>
-                      {partnership.status === "connected" && (
-                        <p className="text-xs mt-1" style={{ color: "#919191" }}>
-                          Click profile to open email
-                        </p>
-                      )}
+                      {/* Removed: Click profile to open email text */}
                     </div>
                   </div>
                 ))
