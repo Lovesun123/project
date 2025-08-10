@@ -395,13 +395,20 @@ export default function Profile() {
               {user.partnerships && user.partnerships.length > 0 ? (
                 user.partnerships.map((partnership, index) => (
                   <div key={partnership.id || index} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <a
+                      href={partnership.influencerEmail ? `mailto:${partnership.influencerEmail}` : "#"}
+                      className="flex items-center gap-3 hover:underline"
+                      title={
+                        partnership.influencerEmail ? `Email ${partnership.influencerName}` : "Email not available"
+                      }
+                    >
                       {/* Profile Picture for partnership */}
                       {partnership.influencerProfile?.profilePicture || partnership.businessProfile?.profilePicture ? (
                         <img
                           src={
                             partnership.influencerProfile?.profilePicture ||
                             partnership.businessProfile?.profilePicture ||
+                            "/placeholder.svg" ||
                             "/placeholder.svg"
                           }
                           alt="Partner Profile"
@@ -419,29 +426,38 @@ export default function Profile() {
                       <span style={{ color: "#7b3b3b" }}>
                         {partnership.businessName || partnership.influencerName || "Name"}
                       </span>
-                    </div>
-                    <div className="flex items-center gap-2">
+                    </a>
+                    <div className="flex flex-col items-end gap-1">
+                      {" "}
+                      {/* Changed to flex-col and items-end */}
+                      <div className="flex items-center gap-2">
+                        {partnership.status === "connected" && (
+                          <div className="w-6 h-6 flex items-center justify-center">
+                            <Star size={20} fill="#FFA500" color="#FFA500" /> {/* Star icon */}
+                          </div>
+                        )}
+                        <select
+                          className="px-3 py-1 rounded text-sm border"
+                          style={{
+                            backgroundColor: "#ffffff",
+                            borderColor: "#b9d7d9",
+                            color: "#7b3b3b",
+                          }}
+                          value={partnership.status || "connected"}
+                          readOnly
+                        >
+                          <option value="connected">Connected</option>
+                          <option value="pending">Pending</option> {/* Added pending option */}
+                          <option value="past">Past</option>
+                          <option value="declined">Declined</option>
+                          <option value="ongoing">Ongoing</option>
+                        </select>
+                      </div>
                       {partnership.status === "connected" && (
-                        <div className="w-6 h-6 flex items-center justify-center">
-                          <Star size={20} fill="#FFA500" color="#FFA500" /> {/* Star icon */}
-                        </div>
+                        <p className="text-xs mt-1" style={{ color: "#919191" }}>
+                          Click profile to open email
+                        </p>
                       )}
-                      <select
-                        className="px-3 py-1 rounded text-sm border"
-                        style={{
-                          backgroundColor: "#ffffff",
-                          borderColor: "#b9d7d9",
-                          color: "#7b3b3b",
-                        }}
-                        value={partnership.status || "connected"}
-                        readOnly
-                      >
-                        <option value="connected">Connected</option>
-                        <option value="pending">Pending</option> {/* Added pending option */}
-                        <option value="past">Past</option>
-                        <option value="declined">Declined</option>
-                        <option value="ongoing">Ongoing</option>
-                      </select>
                     </div>
                   </div>
                 ))
