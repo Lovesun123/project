@@ -19,29 +19,11 @@ export const AuthProvider = ({ children }) => {
   const API_URL = import.meta.env.VITE_RAILWAY_API_URL || "http://localhost:3001"
 
   useEffect(() => {
-    const loadUserFromStorage = async () => {
-      const savedUser = localStorage.getItem("micromatch_user")
-      if (savedUser) {
-        const parsedUser = JSON.parse(savedUser)
-        try {
-          const response = await fetch(`${API_URL}/api/data/${parsedUser.id}`)
-          if (response.ok) {
-            const latestUserData = await response.json()
-            setUser(latestUserData)
-            console.log("User reloaded from backend:", latestUserData)
-          } else {
-            console.warn("Failed to fetch latest user data from backend, using local storage:", parsedUser)
-            setUser(parsedUser)
-          }
-        } catch (error) {
-          console.error("Error re-fetching user data on load:", error)
-          setUser(parsedUser)
-        }
-      }
-      setLoading(false)
-    }
-
-    loadUserFromStorage()
+    // On initial load, always start as logged out.
+    // User will need to explicitly log in.
+    localStorage.removeItem("micromatch_user") // Clear any previously saved user data
+    setUser(null) // Ensure user state is null
+    setLoading(false) // Mark loading as complete
   }, [])
 
   const login = async (email, password, userType) => {
@@ -90,7 +72,6 @@ export const AuthProvider = ({ children }) => {
           ...(userType === "business" && {
             bio: "", // Bio for business users
             plan: "Free",
-            targetAudience: "", // This was previously here for business, but user wants it for influencer
             productFocus: "",
             brandValues: "",
             pricing: "",

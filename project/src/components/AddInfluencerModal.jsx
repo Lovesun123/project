@@ -11,9 +11,9 @@ export default function AddInfluencerModal({ onClose, onInfluencerAdded, API_URL
     firstName: "",
     lastName: "",
     email: "",
-    username: "", // Added username
+    username: "",
     profilePicture: "",
-    bio: "",
+    targetAudience: "", // This is the field for Targeted Audience
     age: "",
     location: "",
     gender: "",
@@ -28,14 +28,13 @@ export default function AddInfluencerModal({ onClose, onInfluencerAdded, API_URL
 
   useEffect(() => {
     if (editingInfluencer) {
-      // Pre-fill form if editing an existing influencer
       setFormData({
         firstName: editingInfluencer.profile?.firstName || "",
         lastName: editingInfluencer.profile?.lastName || "",
         email: editingInfluencer.email || "",
-        username: editingInfluencer.profile?.username || "", // Pre-fill username
+        username: editingInfluencer.profile?.username || "",
         profilePicture: editingInfluencer.profile?.profilePicture || "",
-        bio: editingInfluencer.profile?.bio || "",
+        targetAudience: editingInfluencer.profile?.targetAudience || "", // Pre-filling for editing
         age: editingInfluencer.profile?.age || "",
         location: editingInfluencer.profile?.location || "",
         gender: editingInfluencer.profile?.gender || "",
@@ -45,14 +44,13 @@ export default function AddInfluencerModal({ onClose, onInfluencerAdded, API_URL
         pricingRange: editingInfluencer.profile?.pricingRange || "",
       })
     } else {
-      // Reset form for adding new influencer
       setFormData({
         firstName: "",
         lastName: "",
         email: "",
-        username: "", // Reset username
+        username: "",
         profilePicture: "",
-        bio: "",
+        targetAudience: "", // Resetting for new influencer
         age: "",
         location: "",
         gender: "",
@@ -84,9 +82,9 @@ export default function AddInfluencerModal({ onClose, onInfluencerAdded, API_URL
         profile: {
           firstName: formData.firstName,
           lastName: formData.lastName,
-          username: formData.username, // Include username in profile
+          username: formData.username,
           profilePicture: formData.profilePicture,
-          bio: formData.bio,
+          targetAudience: formData.targetAudience, // This is included in the profile data
           age: formData.age,
           location: formData.location,
           gender: formData.gender,
@@ -95,21 +93,19 @@ export default function AddInfluencerModal({ onClose, onInfluencerAdded, API_URL
           niches: formData.niches,
           pricingRange: formData.pricingRange,
         },
-        partnerships: editingInfluencer?.partnerships || [], // Preserve existing partnerships
-        requests: editingInfluencer?.requests || [], // Preserve existing requests
+        partnerships: editingInfluencer?.partnerships || [],
+        requests: editingInfluencer?.requests || [],
       }
 
       let response
       if (editingInfluencer) {
-        // Update existing influencer
         response = await fetch(`${API_URL}/api/data/${editingInfluencer.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ data: influencerData }),
         })
       } else {
-        // Add new influencer
-        const newId = `influencer_${Date.now()}` // Unique ID
+        const newId = `influencer_${Date.now()}`
         response = await fetch(`${API_URL}/api/data`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -125,9 +121,9 @@ export default function AddInfluencerModal({ onClose, onInfluencerAdded, API_URL
       }
 
       setSuccess(true)
-      onInfluencerAdded() // Callback to refresh the explore page
+      onInfluencerAdded()
       setTimeout(() => {
-        onClose() // Close modal after success
+        onClose()
       }, 1500)
     } catch (err) {
       setError(err.message)
@@ -230,20 +226,22 @@ export default function AddInfluencerModal({ onClose, onInfluencerAdded, API_URL
               style={{ borderColor: "#b9d7d9", backgroundColor: "#ffffff" }}
             />
           </div>
+          {/* Targeted Audience Section */}
           <div>
-            <Label htmlFor="bio" style={{ color: "#7b3b3b" }}>
-              Bio
+            <Label htmlFor="targetAudience" style={{ color: "#7b3b3b" }}>
+              Targeted Audience
             </Label>
             <textarea
-              id="bio"
-              name="bio"
-              value={formData.bio}
+              id="targetAudience"
+              name="targetAudience"
+              value={formData.targetAudience}
               onChange={handleChange}
-              placeholder="Tell us about this influencer..."
+              placeholder="Describe the influencer's target audience..."
               className="w-full h-24 p-3 border-2 rounded-md resize-none mt-2"
               style={{ borderColor: "#b9d7d9", backgroundColor: "#ffffff" }}
             />
           </div>
+          {/* End Targeted Audience Section */}
           <div>
             <Label htmlFor="age" style={{ color: "#7b3b3b" }}>
               Age (optional)
