@@ -7,10 +7,10 @@ import Input from "../components/Input"
 import Label from "../components/Label"
 import ImageUpload from "../components/ImageUpload"
 import BioEditor from "../components/BioEditor"
-import { Star, User } from "lucide-react" // Import Star and User icon
+import { Star, User } from "lucide-react"
 
 export default function Profile() {
-  const { user, updateProfile, updatePartnershipStatus } = useAuth() // Destructure updatePartnershipStatus
+  const { user, updateProfile, updatePartnershipStatus } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState(user?.profile || {})
   const [loading, setLoading] = useState(false)
@@ -37,14 +37,15 @@ export default function Profile() {
     }
   }
 
-  const handleBioChange = async (newBio) => {
-    const updatedData = { ...formData, bio: newBio }
+  const handleBioOrTargetAudienceChange = async (newValue) => {
+    const fieldToUpdate = user.userType === "influencer" ? "targetAudience" : "bio"
+    const updatedData = { ...formData, [fieldToUpdate]: newValue }
     setFormData(updatedData)
 
-    // Auto-save bio
+    // Auto-save
     const result = await updateProfile(updatedData)
     if (!result.success) {
-      alert("Failed to update bio")
+      alert(`Failed to update ${fieldToUpdate}`)
     }
   }
 
@@ -250,6 +251,20 @@ export default function Profile() {
                 {isInfluencer && (
                   <>
                     <div>
+                      <Label style={{ color: "#7b3b3b" }}>Username</Label>
+                      <Input
+                        name="username"
+                        value={formData.username || ""}
+                        onChange={handleChange}
+                        disabled={!isEditing}
+                        placeholder="username"
+                        style={{
+                          borderColor: "#b9d7d9",
+                          backgroundColor: isEditing ? "#ffffff" : "#f5f5f5",
+                        }}
+                      />
+                    </div>
+                    <div>
                       <Label style={{ color: "#7b3b3b" }}>Platform</Label>
                       <Input
                         name="platform"
@@ -376,11 +391,15 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Right Side - Bio and Partnerships */}
+        {/* Right Side - Bio/Targeted Audience and Partnerships */}
         <div className="w-1/2 flex flex-col items-center justify-center px-8 py-12">
-          {/* Bio Section */}
+          {/* Bio/Targeted Audience Section */}
           <div className="w-full max-w-lg mb-8">
-            <BioEditor bio={formData.bio} onBioChange={handleBioChange} />
+            <BioEditor
+              value={isInfluencer ? formData.targetAudience : formData.bio}
+              onValueChange={handleBioOrTargetAudienceChange}
+              fieldLabel={isInfluencer ? "Targeted Audience" : "Bio"}
+            />
           </div>
 
           {/* Partnerships Section */}
@@ -412,6 +431,7 @@ export default function Profile() {
                           src={
                             partnership.influencerProfile?.profilePicture ||
                             partnership.businessProfile?.profilePicture ||
+                            "/placeholder.svg" ||
                             "/placeholder.svg" ||
                             "/placeholder.svg"
                           }
@@ -467,7 +487,6 @@ export default function Profile() {
                           <option value="ongoing">Ongoing</option>
                         </select>
                       </div>
-                      {/* Removed: Click profile to open email text */}
                     </div>
                   </div>
                 ))

@@ -82,20 +82,27 @@ export const AuthProvider = ({ children }) => {
         profile: {
           firstName: "",
           lastName: "",
-          bio: "",
           profilePicture: "",
           age: "",
           location: "",
           gender: "",
-          plan: userType === "business" ? "Free" : undefined,
-          targetAudience: userType === "business" ? "" : undefined,
-          productFocus: userType === "business" ? "" : undefined,
-          brandValues: userType === "business" ? "" : undefined,
-          pricing: userType === "business" ? "" : undefined,
-          platform: userType === "influencer" ? "" : undefined,
-          followerCount: userType === "influencer" ? "" : undefined,
-          niches: userType === "influencer" ? "" : undefined,
-          pricingRange: userType === "influencer" ? "" : undefined,
+          // Conditional fields based on userType
+          ...(userType === "business" && {
+            bio: "", // Bio for business users
+            plan: "Free",
+            targetAudience: "", // This was previously here for business, but user wants it for influencer
+            productFocus: "",
+            brandValues: "",
+            pricing: "",
+          }),
+          ...(userType === "influencer" && {
+            username: "", // Added username for influencers
+            targetAudience: "", // Targeted Audience for influencer users
+            platform: "",
+            followerCount: "",
+            niches: "",
+            pricingRange: "",
+          }),
         },
         partnerships: [],
         requests: [],

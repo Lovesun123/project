@@ -197,10 +197,11 @@ export default function Explore() {
     return (
       (profile.firstName || "").toLowerCase().includes(searchLower) ||
       (profile.lastName || "").toLowerCase().includes(searchLower) ||
-      (profile.username || "").toLowerCase().includes(searchLower) || // Search by username
+      (profile.username || "").toLowerCase().includes(searchLower) ||
       (profile.niches || "").toLowerCase().includes(searchLower) ||
       (profile.location || "").toLowerCase().includes(searchLower) ||
-      (profile.platform || "").toLowerCase().includes(searchLower)
+      (profile.platform || "").toLowerCase().includes(searchLower) ||
+      (profile.targetAudience || "").toLowerCase().includes(searchLower)
     )
   })
 
@@ -251,7 +252,7 @@ export default function Explore() {
             <div className="max-w-4xl mx-auto flex gap-4 items-center">
               <Input
                 type="text"
-                placeholder="Search (niche, location, platform, username)" // Updated placeholder
+                placeholder="Search (niche, location, platform, username, target audience)"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="flex-1 px-6 py-4 text-lg rounded-lg"
@@ -352,7 +353,7 @@ export default function Explore() {
                       </p>
                     )}
                     <p className="text-sm mb-4" style={{ color: "#7b3b3b" }}>
-                      {influencer.profile?.bio || "No bio provided."}
+                      {influencer.profile?.targetAudience || "No target audience specified."}
                     </p>
 
                     <div className="flex justify-center gap-3 mb-4">
@@ -457,9 +458,9 @@ export default function Explore() {
 
             <div className="space-y-4" style={{ color: "#7b3b3b" }}>
               <div>
-                <strong>BIO</strong>
-                {selectedInfluencer.profile?.bio ? (
-                  <p className="mt-2 p-2 bg-white rounded border">{selectedInfluencer.profile.bio}</p>
+                <strong>Targeted Audience</strong>
+                {selectedInfluencer.profile?.targetAudience ? (
+                  <p className="mt-2 p-2 bg-white rounded border">{selectedInfluencer.profile.targetAudience}</p>
                 ) : (
                   <div>
                     <div className="border-b-2 border-current mt-1 mb-2"></div>
@@ -479,10 +480,6 @@ export default function Explore() {
 
               <div>
                 <strong>Gender (optional):</strong> {selectedInfluencer.profile?.gender || "Not specified"}
-              </div>
-
-              <div>
-                <strong>Target audience:</strong> {selectedInfluencer.profile?.targetAudience || "Not specified"}
               </div>
 
               <div>
