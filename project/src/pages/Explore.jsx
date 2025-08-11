@@ -19,31 +19,35 @@ export default function Explore() {
   const [loadingInfluencers, setLoadingInfluencers] = useState(true)
 
   const fetchInfluencers = useCallback(async () => {
-    setLoadingInfluencers(true)
-    try {
-      const response = await fetch(`${API_URL}/api/data`)
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      const allData = await response.json()
-
-      const influencerAccounts = Object.values(allData)
-        .map((item) => item.data)
-        .filter((value) => value.userType === "influencer" && value.profile)
-        .map((value) => ({
-          id: value.id,
-          ...value,
-          profile: value.profile || {},
-        }))
-
-      setInfluencers(influencerAccounts)
-    } catch (error) {
-      console.error("Error fetching influencers:", error)
-      setInfluencers([])
-    } finally {
-      setLoadingInfluencers(false)
+  setLoadingInfluencers(true);
+  try {
+    const response = await fetch(`${API_URL}/api/data`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  }, [API_URL])
+    const allData = await response.json();
+
+    const influencerAccounts = Object.values(allData)
+      .map((item) => {
+        // Ensure that the ID is correctly extracted from the item
+        const influencerData = item.data;
+        return {
+          id: item.id, // Assuming the ID is at the item level
+          ...influencerData,
+          profile: influencerData.profile || {},
+        };
+      })
+      .filter((value) => value.userType === "influencer" && value.profile);
+
+    setInfluencers(influencerAccounts);
+  } catch (error) {
+    console.error("Error fetching influencers:", error);
+    setInfluencers([]);
+  } finally {
+    setLoadingInfluencers(false);
+  }
+}, [API_URL]);
+
 
   useEffect(() => {
     fetchInfluencers()
