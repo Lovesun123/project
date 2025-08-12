@@ -4,31 +4,28 @@ import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "../context/AuthContext"
 import Button from "../components/Button"
 import Input from "../components/Input"
-import { X, User, PlusCircle, Edit3, Trash2 } from "lucide-react"
-import AddInfluencerModal from "../components/AddInfluencerModal"
+import { X, User } from "lucide-react"
 
 export default function Explore() {
-  const { user, API_URL, updateProfile, updateUser } = useAuth()
+  const { user, API_URL, updateUser } = useAuth()
   const [influencers, setInfluencers] = useState([])
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedInfluencer, setSelectedInfluencer] = useState(null)
   const [showInfoModal, setShowInfoModal] = useState(false)
-  const [showAddEditModal, setShowAddEditModal] = useState(false)
-  const [editingInfluencer, setEditingInfluencer] = useState(null)
   const [notification, setNotification] = useState(null)
   const [loadingInfluencers, setLoadingInfluencers] = useState(true)
 
   const fetchInfluencers = useCallback(async () => {
-  setLoadingInfluencers(true);
-  try {
-    const response = await fetch(`${API_URL}/api/data`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const allData = await response.json();
+    setLoadingInfluencers(true)
+    try {
+      const response = await fetch(`${API_URL}/api/data`)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const allData = await response.json()
 
-    const influencerAccounts = Object.values(allData)
-      .map((item) => {
+      const influencerAccounts = Object.values(allData)
+        .map((item) => {
         // Ensure that the ID is correctly extracted from the item
         const influencerData = item.data;
         return {
@@ -39,15 +36,14 @@ export default function Explore() {
       })
       .filter((value) => value.userType === "influencer" && value.profile);
 
-    setInfluencers(influencerAccounts);
-  } catch (error) {
-    console.error("Error fetching influencers:", error);
-    setInfluencers([]);
-  } finally {
-    setLoadingInfluencers(false);
-  }
-}, [API_URL]);
-
+      setInfluencers(influencerAccounts)
+    } catch (error) {
+      console.error("Error fetching influencers:", error)
+      setInfluencers([])
+    } finally {
+      setLoadingInfluencers(false)
+    }
+  }, [API_URL])
 
   useEffect(() => {
     fetchInfluencers()
@@ -141,55 +137,6 @@ export default function Explore() {
     }
   }
 
-  const handleDeleteInfluencer = async (influencerId) => {
-    if (!window.confirm("Are you sure you want to delete this influencer?")) return
-    try {
-      const response = await fetch(`${API_URL}/api/data/${influencerId}`, {
-        method: "DELETE",
-      })
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`Failed to delete influencer: ${response.status} - ${errorText}`)
-      }
-      setNotification({
-        type: "success",
-        message: "Influencer deleted successfully!",
-        details: "",
-      })
-      fetchInfluencers()
-      setTimeout(() => setNotification(null), 3000)
-    } catch (error) {
-      console.error("Error deleting influencer:", error)
-      setNotification({
-        type: "error",
-        message: "Failed to delete influencer.",
-        details: error.message,
-      })
-      setTimeout(() => setNotification(null), 5000)
-    }
-  }
-
-  const handleEditInfluencer = (influencer) => {
-    setEditingInfluencer(influencer)
-    setShowAddEditModal(true)
-  }
-
-  const handleAddInfluencerClick = () => {
-    setEditingInfluencer(null)
-    setShowAddEditModal(true)
-  }
-
-  const handleModalClose = () => {
-    setShowAddEditModal(false)
-    setEditingInfluencer(null)
-  }
-
-  const handleInfluencerAddedOrUpdated = () => {
-    fetchInfluencers()
-    setSearchTerm("")
-    handleModalClose()
-  }
-
   const filteredInfluencers = influencers.filter((influencer) => {
     if (!searchTerm.trim()) {
       return influencer.profile && Object.keys(influencer.profile).length > 0
@@ -252,27 +199,18 @@ export default function Explore() {
               Just search, select, and start growing.
             </p>
 
-            {/* Search Bar and Add Influencer Button */}
-            <div className="max-w-4xl mx-auto flex gap-4 items-center">
+            <div className="max-w-4xl mx-auto">
               <Input
                 type="text"
                 placeholder="Search (niche, location, platform, username, target audience)"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 px-6 py-4 text-lg rounded-lg"
+                className="w-full px-6 py-4 text-lg rounded-lg"
                 style={{
                   backgroundColor: "#ffffff",
                   borderColor: "#b9d7d9",
                 }}
               />
-              <Button
-                onClick={handleAddInfluencerClick}
-                className="px-6 py-4 rounded-full text-white font-medium flex items-center gap-2"
-                style={{ backgroundColor: "#7b3b3b" }}
-              >
-                <PlusCircle size={20} className="mr-2" />
-                Add Influencer
-              </Button>
             </div>
           </div>
 
@@ -301,31 +239,24 @@ export default function Explore() {
               <h2 className="text-2xl font-bold mb-2" style={{ color: "#7b3b3b" }}>
                 No micro-influencers have created profiles yet.
               </h2>
-              <p className="text-xl mb-4" style={{ color: "#7b3b3b" }}>
-                Start by adding your first micro-influencer!
-              </p>
-              <Button
-                onClick={handleAddInfluencerClick}
-                className="px-6 py-4 rounded-full text-white font-medium flex items-center gap-2"
-                style={{ backgroundColor: "#7b3b3b" }}
-              >
-                <PlusCircle size={20} className="mr-2" />
-                Add Your First Influencer
-              </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-8">
+            <div className="grid grid-cols-3 gap-6 max-w-6xl mx-auto">
               {filteredInfluencers.map((influencer) => (
                 <div
                   key={influencer.id}
-                  className="rounded-lg overflow-hidden shadow-md transition-transform duration-200 hover:scale-[1.02]"
-                  style={{ backgroundColor: "#b9d7d9" }}
+                  className="rounded-3xl overflow-hidden shadow-lg transition-transform duration-200 hover:scale-[1.02]"
+                  style={{
+                    backgroundColor: "#b9d7d9",
+                    width: "280px",
+                    height: "380px",
+                  }}
                 >
                   {/* Profile Section */}
-                  <div className="p-6 text-center">
-                    {/* Profile Picture */}
-                    {influencer.profile?.profilePicture ? (
-                      <div className="w-full h-[180px] overflow-hidden relative">
+                  <div className="p-4 text-center">
+                    {/* Circular Profile Picture */}
+                    <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                      {influencer.profile?.profilePicture ? (
                         <img
                           src={influencer.profile.profilePicture || "/placeholder.svg"}
                           alt={`${influencer.profile?.firstName} ${influencer.profile?.lastName}`}
@@ -336,97 +267,67 @@ export default function Explore() {
                           }}
                           loading="lazy"
                         />
-                      </div>
-                    ) : (
-                      <div
-                        className="w-full h-[180px] flex items-center justify-center text-6xl font-bold"
-                        style={{ backgroundColor: "#f9f2e0", color: "#7b3b3b" }}
-                      >
-                        <User size={64} />
-                      </div>
-                    )}
-
-                    <h3 className="text-lg font-semibold mt-4 mb-2" style={{ color: "#7b3b3b" }}>
-                      {influencer.profile?.firstName && influencer.profile?.lastName
-                        ? `${influencer.profile.firstName} ${influencer.profile.lastName}`
-                        : "Micro-Influencer"}
-                    </h3>
-                    {influencer.profile?.username && (
-                      <p className="text-sm mb-2" style={{ color: "#7b3b3b" }}>
-                        @{influencer.profile.username}
-                      </p>
-                    )}
-                    <p className="text-sm mb-4" style={{ color: "#7b3b3b" }}>
-                      {influencer.profile?.targetAudience || "No target audience specified."}
-                    </p>
-
-                    <div className="flex justify-center gap-3 mb-4">
-                      <button
-                        className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                        onClick={() => handleEditInfluencer(influencer)}
-                        title="Edit Influencer"
-                        style={{ color: "#7b3b3b" }}
-                      >
-                        <Edit3 size={16} />
-                      </button>
-                      <button
-                        className="p-2 rounded-full hover:bg-red-100 transition-colors"
-                        onClick={() => handleDeleteInfluencer(influencer.id)}
-                        title="Delete Influencer"
-                        style={{ color: "#dc3545" }}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                      {(() => {
-                        const currentPartnershipStatus = getPartnershipStatus(influencer.id)
-
-                        return (
-                          <Button
-                            onClick={() => handleConnect(influencer.id)}
-                            className="px-4 py-2 rounded-full text-white font-medium text-sm"
-                            style={{
-                              backgroundColor:
-                                currentPartnershipStatus === "connected"
-                                  ? "#7b3b3b"
-                                  : currentPartnershipStatus === "pending"
-                                    ? "#b9d7d9"
-                                    : "#2a2829",
-                              color: currentPartnershipStatus === "pending" ? "#7b3b3b" : "#ffffff",
-                            }}
-                            disabled={currentPartnershipStatus !== null}
-                          >
-                            {currentPartnershipStatus === "connected"
-                              ? "CONNECTED"
-                              : currentPartnershipStatus === "pending"
-                                ? "PENDING"
-                                : "CONNECT"}
-                          </Button>
-                        )
-                      })()}
+                      ) : (
+                        <div
+                          className="w-full h-full flex items-center justify-center"
+                          style={{ backgroundColor: "#f9f2e0", color: "#7b3b3b" }}
+                        >
+                          <User size={32} />
+                        </div>
+                      )}
                     </div>
+
+                    {/* Connect Button - Made pill-shaped and not full-width */}
+                    {(() => {
+                      const currentPartnershipStatus = getPartnershipStatus(influencer.id)
+                      return (
+                        <Button
+                          onClick={() => handleConnect(influencer.id)}
+                          className="px-8 py-2 rounded-full text-white font-bold text-sm mb-4"
+                          style={{
+                            backgroundColor: "#7b3b3b",
+                          }}
+                          disabled={currentPartnershipStatus !== null}
+                        >
+                          {currentPartnershipStatus === "connected"
+                            ? "CONNECTED"
+                            : currentPartnershipStatus === "pending"
+                              ? "PENDING"
+                              : "CONNECT"}
+                        </Button>
+                      )
+                    })()}
                   </div>
 
-                  {/* Info Section */}
-                  <div className="p-4 text-white" style={{ backgroundColor: "#7b3b3b" }}>
-                    <div className="space-y-1 text-sm">
+                  {/* Info Section - Dark rounded rectangle with underlined text */}
+                  <div className="mx-3 mb-3 p-4 rounded-2xl text-white" style={{ backgroundColor: "#7b3b3b" }}>
+                    <div className="space-y-2 text-sm">
                       <div>
-                        <span className="font-semibold">Platform:</span> {influencer.profile?.platform || "N/A"}
+                        <span className="font-normal underline">Name: </span>
+                        <span className="underline">
+                          {influencer.profile?.firstName && influencer.profile?.lastName
+                            ? `${influencer.profile.firstName} ${influencer.profile.lastName}`
+                            : "Micro-Influencer"}
+                        </span>
                       </div>
                       <div>
-                        <span className="font-semibold">Followers:</span> {influencer.profile?.followerCount || "N/A"}
+                        <span className="font-normal underline">Username: </span>
+                        <span className="underline">@{influencer.profile?.username || "username"}</span>
                       </div>
                       <div>
-                        <span className="font-semibold">Niche(s):</span> {influencer.profile?.niches || "N/A"}
+                        <span className="font-normal underline">Media: </span>
+                        <span className="underline">{influencer.profile?.platform || "N/A"}</span>
                       </div>
                       <div>
-                        <span className="font-semibold">Pricing:</span> {influencer.profile?.pricingRange || "N/A"}
+                        <span className="font-normal underline">Followers: </span>
+                        <span className="underline">{influencer.profile?.followerCount || "N/A"}</span>
                       </div>
                       <button
                         onClick={() => {
                           setSelectedInfluencer(influencer)
                           setShowInfoModal(true)
                         }}
-                        className="underline hover:opacity-80"
+                        className="underline hover:opacity-80 font-normal"
                       >
                         Other Info
                       </button>
@@ -496,16 +397,6 @@ export default function Explore() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Add/Edit Influencer Modal */}
-      {showAddEditModal && (
-        <AddInfluencerModal
-          onClose={handleModalClose}
-          onInfluencerAdded={handleInfluencerAddedOrUpdated}
-          API_URL={API_URL}
-          influencer={editingInfluencer}
-        />
       )}
     </div>
   )
