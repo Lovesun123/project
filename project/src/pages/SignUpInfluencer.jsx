@@ -198,7 +198,7 @@ export default function SignUpInfluencer() {
             style={{ borderColor: '#e0dac9', borderWidth: '2px' }}
           >
             <img
-              src="/Mi.png"
+              src="https://www.gohealthuc.com/_next/image?url=https%3A%2F%2Fimages.prismic.io%2Fgohealth%2F4a3e4c78-4676-4156-aa06-9c71d72660d9_rash1.jpg%3Fauto%3Dcompress%2Cformat%26rect%3D0%2C99%2C3000%2C1800%26w%3D1000%26h%3D600&w=1920&q=75"
               alt="Woman applying skincare products"
               className="w-full h-full object-cover"
               style={{ maxHeight: '600px' }}

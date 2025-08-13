@@ -50,7 +50,7 @@ export default function Login() {
             style={{ borderColor: '#e0dac9', borderWidth: '2px' }}
           >
             <img
-              src="/wback.png"
+              src="https://workersworldtoday.com/wp-content/uploads/2024/10/shutterstock_2499413175.jpg"
               alt="Woman working with cosmetic products in a professional setting"
               className="w-full h-full object-cover"
               style={{ maxHeight: '600px' }}

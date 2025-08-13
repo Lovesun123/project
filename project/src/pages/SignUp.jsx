@@ -102,7 +102,7 @@ export default function SignUp() {
             style={{ borderColor: '#e0dac9', borderWidth: '2px' }}
           >
             <img
-              src="/meakup.webp"
+              src="https://www.hotdeals.com/public/images/blog_posts/d/health-beauty-04.png"
               alt="Woman applying skincare products"
               className="w-full h-full object-cover"
               style={{ maxHeight: '600px' }}

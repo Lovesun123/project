@@ -198,7 +198,7 @@ export default function SignUpBusiness() {
             style={{ borderColor: '#e0dac9', borderWidth: '2px' }}
           >
             <img
-              src="/SM.jpg"
+              src="https://cached.imagescaler.hbpl.co.uk/resize/scaleWidth/1272/cached.offlinehbpl.hbpl.co.uk/news/SUC/GettyImages-1313649310.jpg"
               alt="Woman applying skincare products"
               className="w-full h-full object-cover"
               style={{ maxHeight: '600px' }}
